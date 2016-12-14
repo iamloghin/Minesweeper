@@ -1,2 +1,2 @@
-# minesweeper
-minesweeper
+# Minesweeper - FTL
+The Glorious Adventure
