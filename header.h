@@ -28,4 +28,5 @@ int nearMines(int x, int y);
 void countSurrounding(int x, int y);
 void placeMines();
 bool revealed (int x, int y);
+void display(int x, int y, int firstX, int firstY);
 void reveal(int x, int y);

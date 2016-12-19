@@ -3,10 +3,13 @@
 int main()
 {
     srand(time(0));
-    width=15;
-    height=15;
-    mineNumber=40;
-    squareNumber= width * height;
+
+    // user input
+    std::cout << "Width = "; std::cin >> width;
+    std::cout << "Height = "; std::cin >> height;
+    std::cout << "Mine number = "; std::cin >> mineNumber;
+
+    squareNumber= width*height;
     unrevealed= squareNumber;
 
     sf::RenderWindow appWindow(sf::VideoMode(width*squareSize, height*squareSize), "Minesweeper!");
@@ -118,15 +121,45 @@ bool revealed (int x, int y)
     return false;
 }
 
+void display(int x, int y, int firstX, int firstY)
+{
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
+    int i = y * width + x;
+    if (boardRevealed[i] != 0 || board[i] == 9) return;
+    boardRevealed[i] = 1;
+    --unrevealed;
+    if (board[i] == 0) {
+        if (!revealed(x+1, y)) {display(x+1, y, x, y);}
+        if (!revealed(x-1, y)) {display(x-1, y, x, y);}
+        if (!revealed(x, y+1)) {display(x, y+1, x, y);}
+        if (!revealed(x, y-1)) {display(x, y-1, x, y);}
+        if (!revealed(x+1, y+1)) {display(x+1, y+1, x, y);}
+        if (!revealed(x+1, y-1)) {display(x+1, y-1, x, y);}
+        if (!revealed(x-1, y+1)) {display(x-1, y+1, x, y);}
+        if (!revealed(x-1, y-1)) {display(x-1, y-1, x, y);}
+    }
+}
+
 void reveal(int x, int y)
 {
-    if(x<0 || x>=width || y<0 || y>=height) return;
-    int i= y*width+x;
-    if(boardRevealed[i] == 0) {
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
+    int i = y * width + x;
+    if (boardRevealed[i] == 0) {
         boardRevealed[i] = 1;
         --unrevealed;
-        if(board[i] == 9)
+        if (board[i] == 0) {
+            display(x+1, y, x, y);
+            display(x-1, y, x, y);
+            display(x, y+1, x, y);
+            display(x, y-1, x, y);
+            display(x+1, y-1, x, y);
+            display(x+1, y+1, x, y);
+            display(x-1, y-1, x, y);
+            display(x-1, y+1, x, y);
+        }
+        if (board[i] == 9) {
             gameOver = true;
+        }
     }
 }
 
