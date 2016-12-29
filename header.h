@@ -16,7 +16,7 @@
 int width, height, squareNumber, mineNumber, unrevealed, flagNum;
 int squareSize = 32;
 int board[MAX * MAX] = { 0 };
-int boardRevealed[MAX * MAX] = { 0 }; // 0 is hide, 1 is show, 2 is flag
+int boardRevealed[MAX * MAX] = { 0 }; // 0 is hide, 1 is show, 2 is flag, 3 mark the death position
 bool gameOver = false, won = false;
 
 // My Colors
@@ -29,4 +29,4 @@ void countSurrounding(int x, int y);
 void placeMines();
 bool revealed(int x, int y);
 void display(int x, int y, int firstX, int firstY);
-void reveal(int x, int y);
+bool reveal(int x, int y);
