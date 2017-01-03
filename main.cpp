@@ -12,40 +12,30 @@ int main()
     std::cout << "Mine number = ";
     std::cin >> mineNumber;
 
+    minesLeft = mineNumber;
     squareNumber = width * height;
     unrevealed = squareNumber;
 
+    // Create the window of the application //
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-    sf::RenderWindow appWindow(sf::VideoMode(width * squareSize+squareSize*4, height * squareSize+squareSize*4, desktop.bitsPerPixel), "Minesweeper!");
-    sf::Texture t;
-    t.loadFromFile("images/tiles.png");
-    sf::Sprite s(t);
+    sf::RenderWindow appWindow(sf::VideoMode((width+gameBorder_right+gameBorder_left)*squareSize,(height+gameBorder_top+gameBorder_bottom)*squareSize, desktop.bitsPerPixel), "Minesweeper!");
 
-    // first things first (place the mines)
-    placeMines();
-
-    for (int i = 0; i < squareNumber; i++)
-        countSurrounding(i % width, i / width);
-
-// Sounds & Music
+    // Sounds & Music
     sf::SoundBuffer buffer_mleft, buffer_flag, buffer_unflag, buffer_gameOver, buffer_gameWin;
     sf::Sound sound_mleft, sound_flag, sound_unflag, sound_gameOver, sound_gameWin;
     sf::Music music;
 
-    if (!buffer_mleft.loadFromFile("sounds/click.wav"))
-        std::cout << "can't find the click.wav sound! :(" << std::endl;
-    if (!buffer_flag.loadFromFile("sounds/flag.wav"))
-        std::cout << "can't find the flag.wav sound! :(" << std::endl;
-    if (!buffer_unflag.loadFromFile("sounds/unflag.wav"))
-        std::cout << "can't find the unflag.wav sound! :(" << std::endl;
-    if (!buffer_gameOver.loadFromFile("sounds/gameOver.wav"))
-        std::cout << "can't find the gameOver.wav sound! :(" << std::endl;
-    if (!buffer_gameWin.loadFromFile("sounds/gameWin.wav"))
-        std::cout << "can't find the gameWin.wav sound! :(" << std::endl;
-    if (!music.openFromFile("sounds/music.ogg"))
-        std::cout << "can't find the music.ogg sound! :(" << std::endl;
+    if (!buffer_mleft.loadFromFile("sounds/click.wav")			||
+            !buffer_flag.loadFromFile("sounds/flag.wav")			||
+            !buffer_unflag.loadFromFile("sounds/unflag.wav")		||
+            !buffer_gameOver.loadFromFile("sounds/gameOver.wav")	||
+            !buffer_gameWin.loadFromFile("sounds/gameWin.wav")		||
+            !music.openFromFile("sounds/music.ogg"))
+    {
+        //std::cout << "can't find something in sounds :(" << std::endl;
+    }
 
-// Change some parameters
+    // Change some parameters
     music.setPitch(1); // increase the pitch
     music.setVolume(30); // reduce the volume
     music.setLoop(true); // make it loop
@@ -56,13 +46,40 @@ int main()
     sound_gameOver.setBuffer(buffer_gameOver);
     sound_gameWin.setBuffer(buffer_gameWin);
 
+    // Load the textures used in the game
+    sf::Texture image_sprite, Background_image, faces;
+    if(!image_sprite.loadFromFile("images/tiles.png")   ||
+            !faces.loadFromFile("images/faces.png")          ||
+            !Background_image.loadFromFile("images/tiles.png", sf::IntRect(15 * squareSize, 0, squareSize, squareSize)))
+    {
+        std::cout << "can't find all images :(" << std::endl;
+    }
+    sf::Sprite s(image_sprite), background_sprite(Background_image), f(faces);;
+    Background_image.setRepeated(true);
+    background_sprite.setTextureRect(sf::IntRect(0,0,desktop.width,desktop.height));
+    f.setPosition(appWindow.getDefaultView().getSize().x / 2 - squareSize/2, squareSize);
+
+    // Load the text font //
+    sf::Font font;
+    if (!font.loadFromFile("fonts/visitor1.ttf"))
+        std::cout << "can't find the font (visitor1.ttf) :(" << std::endl;
+
+    // Initialize the score text //
+    sf::Text scoreText;
+    scoreText.setFont(font);
+    scoreText.setCharacterSize(20);
+    scoreText.setStyle(sf::Text::Bold);
+    scoreText.setScale(2.f, 2.f);
+
+    // let's play the music //
     music.play();
 
+    // Main loop //
     while (appWindow.isOpen())
     {
         sf::Vector2i pos = sf::Mouse::getPosition(appWindow);
-        int mouseX = pos.x / squareSize-2;
-        int mouseY = pos.y / squareSize-2;
+        int mouseX = pos.x / squareSize - gameBorder_left;
+        int mouseY = pos.y / squareSize - gameBorder_top;
 
         sf::Event e;
         while (appWindow.pollEvent(e))
@@ -72,9 +89,22 @@ int main()
 
             if (e.type == sf::Event::MouseButtonPressed && gameOver != 1)
             {
-                if (e.key.code == sf::Mouse::Left)
+                if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
                 {
-                    if (boardRevealed[mouseY * width + mouseX] == 0)
+                    if(first_click) // generate the map after the first click every time //
+                    {
+                        first_click=false;
+
+                        board[mouseY * width + mouseX] = -2; // mark the position as a safe point //
+
+                        // first things first (place the mines) //
+                        placeMines(mouseY * width + mouseX);
+
+                        // place the numbers //
+                        for (int i = 0; i < squareNumber; i++)
+                            countSurrounding(i % width, i / width);
+                    }
+                    if (boardRevealed[mouseY * width + mouseX] == 0 || boardRevealed[mouseY * width + mouseX] == 3)
                     {
                         if (board[mouseY * width + mouseX] == 9)
                         {
@@ -86,9 +116,15 @@ int main()
                             board[mouseY * width + mouseX] = -1;
                     }
                 }
-                else if (e.key.code == sf::Mouse::Right)
+                else if (mouseY>=0 && sf::Mouse::isButtonPressed(sf::Mouse::Right))
                 {
                     if (boardRevealed[mouseY * width + mouseX] == 2)
+                    {
+                        sound_flag.play();
+                        minesLeft++;
+                        boardRevealed[mouseY * width + mouseX] = 3;
+                    }
+                    else if (boardRevealed[mouseY * width + mouseX] == 3)
                     {
                         sound_unflag.play();
                         boardRevealed[mouseY * width + mouseX] = 0;
@@ -96,21 +132,40 @@ int main()
                     else if (boardRevealed[mouseY * width + mouseX] == 0)
                     {
                         sound_flag.play();
+                        minesLeft--;
                         boardRevealed[mouseY * width + mouseX] = 2;
                     }
                 }
             }
         }
 
-        // Draw the background image //
-        sf::Texture Background_image;
-        if(!Background_image.loadFromFile("images/tiles.png", sf::IntRect(14 * squareSize, 0, squareSize, squareSize)))
-            std::cout << "can't find the background image (tiles.png) :(" << std::endl;
-        Background_image.setRepeated(true);
-        sf::Sprite Sprite;
-        Sprite.setTexture(Background_image);
-        Sprite.setTextureRect(sf::IntRect(0,0,desktop.width,desktop.height));
-        appWindow.draw(Sprite);
+        // Draw the background blocks //
+        appWindow.draw(background_sprite);
+
+        // Face sprite control //
+        if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        {
+            if(mouseX==(width-1)/2 && mouseY==-3)
+            {
+                f.setTextureRect(sf::IntRect(squareSize*1,0,squareSize,squareSize));
+                reset();
+                sound_gameOver.stop();
+                sound_gameWin.stop();
+                music.play();
+            }
+            else
+                f.setTextureRect(sf::IntRect(squareSize*3,0,squareSize,squareSize));
+        }
+        else if(sf::Mouse::isButtonPressed(sf::Mouse::Right))
+        {
+            if(mouseX==(width-1)/2 && mouseY==-3)
+                f.setTextureRect(sf::IntRect(squareSize*6,0,squareSize,squareSize));
+        }
+        else
+            f.setTextureRect(sf::IntRect(squareSize*0,0,squareSize,squareSize));
+
+        // Draw the face //
+        appWindow.draw(f);
 
         for (int i = 0; i < squareNumber; i++)
         {
@@ -122,6 +177,8 @@ int main()
                 s.setTextureRect(sf::IntRect(11 * squareSize, 0, squareSize, squareSize));
             else if (boardRevealed[i] == 2) // place the flag square
                 s.setTextureRect(sf::IntRect(12 * squareSize, 0, squareSize, squareSize));
+            else if (boardRevealed[i] == 3) // place the not for sure flag
+                s.setTextureRect(sf::IntRect(13 * squareSize, 0, squareSize, squareSize));
 
             // Game End //
             // if the player won the game, places the flag on every bomb that wasn't marked
@@ -137,26 +194,15 @@ int main()
             else if (board[i] == 9 && gameOver)
                 s.setTextureRect(sf::IntRect(9 * squareSize, 0, squareSize, squareSize));
 
-            s.setPosition(i % width * squareSize+squareSize*2, i / width * squareSize+squareSize*2);
+            s.setPosition((i % width + gameBorder_left) * squareSize, (i / width + gameBorder_top) * squareSize);
             appWindow.draw(s);
         }
-
-        // Add THE END text //
-        sf::Text text;
-        sf::Font font;
-        font.loadFromFile("fonts/kongtext.ttf");
-        text.setFont(font);
-        text.setCharacterSize(20);
-        text.setStyle(sf::Text::Bold);
-        text.setColor(sf::Color::White);
 
         // if won //
         if (unrevealed == mineNumber && !gameOver)
         {
-            text.setString("YOU WIN");
-            text.setPosition(width / 3.5 * squareSize, height / 2.5 * squareSize);
-            appWindow.clear(sf::Color::Green);
-            appWindow.draw(text);
+            f.setTextureRect(sf::IntRect(squareSize*4,0,squareSize,squareSize));
+            appWindow.draw(f);
             if (won == false)
             {
                 won = true;
@@ -167,20 +213,22 @@ int main()
         // else if lose //
         else if (gameOver == 1)
         {
-            text.setString("YOU LOSE");
-            text.setPosition(width / 3.5 * squareSize, height / 2.5 * squareSize);
-            sf::Texture b;
-            b.loadFromFile("images/purple.png");
-            b.setRepeated(true);
-            sf::Sprite s(b);
-            sf::Sprite sprite;
-            sprite.setTexture(b);
-            sprite.setTextureRect(sf::IntRect(0,0,desktop.width,desktop.height));
-            sprite.setColor(sf::Color(255, 255, 255, 200));
-            appWindow.draw(sprite);
-
-            appWindow.draw(text);
+            f.setTextureRect(sf::IntRect(squareSize*5,0,squareSize,squareSize));
+            appWindow.draw(f);
+            if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+            {
+                if(mouseX==(width-1)/2 && mouseY==-3)
+                {
+                    f.setTextureRect(sf::IntRect(squareSize*1,0,squareSize,squareSize));
+                    first_click=true;
+                    reset();
+                    gameOver=0;
+                    music.play();
+                }
+            }
         }
+
+        //appWindow.draw(scoreText);
         appWindow.display();
     }
     return 0;
@@ -211,24 +259,24 @@ void countSurrounding(int x, int y)
     board[y * width + x] = result;
 }
 
-void placeMines()
+void placeMines(int first_click_poz)
 {
     int count = 0;
-    while (count < mineNumber)
-    {
-        int randPosition = rand() % squareNumber;
-        if (board[randPosition] != 9)
-        {
-            board[randPosition] = 9;
-            ++count;
-        }
-    }
+     while (count < mineNumber) {
+       int randPosition = rand() % squareNumber;
+       if (board[randPosition] != 9 && board[randPosition]!=-2) {
+         board[randPosition] = 9;
+         ++count;
+       }
+     }
+     if (board[first_click_poz]==-2)
+         board[first_click_poz]=0;
 }
 
 bool revealed(int x, int y)
 {
     if (x < 0 || x >= width || y < 0 || y >= height) return true;
-    if (boardRevealed[y * width + x] != 0) return true;
+    if (boardRevealed[y * width + x] == 1 || boardRevealed[y * width + x] == 2) return true;
     return false;
 }
 
@@ -236,7 +284,7 @@ void display(int x, int y, int firstX, int firstY)
 {
     if (x < 0 || x >= width || y < 0 || y >= height) return;
     int i = y * width + x;
-    if (boardRevealed[i] != 0 || board[i] == 9) return;
+    if (boardRevealed[i] == 1 || boardRevealed[i] == 2 || board[i] == 9) return;
     boardRevealed[i] = 1;
     --unrevealed;
     if (board[i] == 0)
@@ -280,7 +328,7 @@ bool reveal(int x, int y)
 {
     if (x < 0 || x >= width || y < 0 || y >= height) return false;
     int i = y * width + x;
-    if (boardRevealed[i] == 0)
+    if (boardRevealed[i] == 0 || boardRevealed[i] == 3)
     {
         boardRevealed[i] = 1;
         --unrevealed;
@@ -302,4 +350,17 @@ bool reveal(int x, int y)
         }
     }
     return false;
+}
+
+void reset()
+{
+    for(int i=0; i<squareNumber; i++)
+    {
+        board[i]=0;
+        boardRevealed[i]=0;
+    }
+    gameOver = false;
+    first_click = true;
+    won = false;
+    unrevealed = squareNumber;
 }
