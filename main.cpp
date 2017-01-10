@@ -10,9 +10,16 @@ int main()
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     sf::RenderWindow appWindow(sf::VideoMode((width+gameBorder_right+gameBorder_left)*squareSize,(height+gameBorder_top+gameBorder_bottom)*squareSize, desktop.bitsPerPixel), "Minesweeper!", sf::Style::Resize);
 
+    // Set the Icon
+    sf::Image icon;
+    if (!icon.loadFromFile("images/icon.png"))
+    {
+        std::cout << "can't find the game icon :(" << std::endl;
+    }
+
     // Sounds & Music
-    sf::SoundBuffer buffer_mleft, buffer_flag, buffer_unflag, buffer_gameOver, buffer_gameWin;
-    sf::Sound sound_mleft, sound_flag, sound_unflag, sound_gameOver, sound_gameWin;
+    sf::SoundBuffer buffer_mleft, buffer_flag, buffer_unflag, buffer_gameOver, buffer_gameWin, buffer_wrong;
+    sf::Sound sound_mleft, sound_flag, sound_unflag, sound_gameOver, sound_gameWin, sound_wrong;
     sf::Music music, mainmenu;
 
     if (!buffer_mleft.loadFromFile("sounds/click.wav")			    ||
@@ -20,6 +27,7 @@ int main()
             !buffer_unflag.loadFromFile("sounds/unflag.wav")		||
             !buffer_gameOver.loadFromFile("sounds/gameOver.wav")	||
             !buffer_gameWin.loadFromFile("sounds/gameWin.wav")		||
+            !buffer_wrong.loadFromFile("sounds/wrong.wav")		    ||
             !music.openFromFile("sounds/music.ogg")                 ||
             !mainmenu.openFromFile("sounds/mainmenu.ogg"))
     {
@@ -40,24 +48,20 @@ int main()
     sound_unflag.setBuffer(buffer_unflag);
     sound_gameOver.setBuffer(buffer_gameOver);
     sound_gameWin.setBuffer(buffer_gameWin);
-
-    // Load Icon
-    sf::Image Icon;
-    Icon.loadFromFile("images/icon.png");
+    sound_wrong.setBuffer(buffer_wrong);
 
     // Load the textures used in the game
-    sf::Texture image_sprite, Background_image, faces, logo, menubuttons, optionbuttons;
+    sf::Texture image_sprite, Background_image, faces, logo, optionbuttons;
     if( !image_sprite.loadFromFile("images/tiles.png")          ||
-        !menubuttons.loadFromFile("images/menubuttons.png")     ||
         !faces.loadFromFile("images/faces.png")                 ||
         !logo.loadFromFile("images/logo.png")                   ||
         !optionbuttons.loadFromFile("images/optionbuttons.png") ||
-        !Background_image.loadFromFile("images/tiles.png", sf::IntRect(15 * squareSize, 0, squareSize, squareSize)))
+        !Background_image.loadFromFile("images/tiles.png", sf::IntRect(16 * squareSize, 0, squareSize, squareSize)))
     {
         std::cout << "can't find all images :(" << std::endl;
     }
 
-    sf::Sprite s(image_sprite), background_sprite(Background_image), f(faces), front_logo(logo), mainmenubutton(menubuttons), optionbuttonsmenu(optionbuttons);
+    sf::Sprite s(image_sprite), background_sprite(Background_image), f(faces), front_logo(logo), optionbuttonsmenu(optionbuttons);
     Background_image.setRepeated(true);
     background_sprite.setTextureRect(sf::IntRect(0,0,desktop.width,desktop.height));
     front_logo.setPosition(appWindow.getDefaultView().getSize().x/2-2.5*squareSize, 0);
@@ -67,8 +71,10 @@ int main()
     if (!font.loadFromFile("fonts/visitor1.ttf"))
         std::cout << "can't find the font (visitor1.ttf) :(" << std::endl;
 
-    // Initialize the score text //
-    sf::Text scoreText, gameTimer, menu[4];
+    // Initialize the game text //
+    sf::String Playerstring[4];
+    sf::Text scoreText, gameTimer, menu[4], playerinput[4];
+
     scoreText.setFont(font);
     scoreText.setColor(sf::Color::Red);
     scoreText.setCharacterSize(20);
@@ -80,6 +86,26 @@ int main()
     gameTimer.setCharacterSize(20);
     gameTimer.setStyle(sf::Text::Bold);
     gameTimer.setScale(2.f, 2.f);
+
+    // Custom Game Player Input //
+
+    playerinput[1].setFont(font);
+    playerinput[1].setColor(sf::Color::Green);
+    playerinput[1].setCharacterSize(20);
+    playerinput[1].setStyle(sf::Text::Bold);
+    playerinput[1].setScale(2.f, 2.f);
+
+    playerinput[2].setFont(font);
+    playerinput[2].setColor(sf::Color::Green);
+    playerinput[2].setCharacterSize(20);
+    playerinput[2].setStyle(sf::Text::Bold);
+    playerinput[2].setScale(2.f, 2.f);
+
+    playerinput[3].setFont(font);
+    playerinput[3].setColor(sf::Color::Green);
+    playerinput[3].setCharacterSize(20);
+    playerinput[3].setStyle(sf::Text::Bold);
+    playerinput[3].setScale(2.f, 2.f);
 
     // Main menu //
 
@@ -100,7 +126,8 @@ int main()
 
     // Main loop //
     while (appWindow.isOpen())
-    {        sf::Vector2i pos = sf::Mouse::getPosition(appWindow);
+    {
+        sf::Vector2i pos = sf::Mouse::getPosition(appWindow);
         int mouseX = pos.x / squareSize - gameBorder_left;
         int mouseY = pos.y / squareSize - gameBorder_top;
 
@@ -116,14 +143,16 @@ int main()
                     height=5;
                     display_size=0;
                     appWindow.create(sf::VideoMode((width+gameBorder_right+gameBorder_left)*squareSize,(height+gameBorder_top+gameBorder_bottom)*squareSize, desktop.bitsPerPixel), "Minesweeper!");
-                    appWindow.setIcon(32,32,Icon.getPixelsPtr());
+                    appWindow.setIcon(icon.getSize().x, icon.getSize().y,icon.getPixelsPtr());
                 }
-                appWindow.draw(background_sprite);
 
                 // Draw the background //
+                appWindow.draw(background_sprite);
+
+                // Draw the text background //
                 for(int i=3*width; i<8*width; i++)
                 {
-                    s.setTextureRect(sf::IntRect(16 * squareSize, 0, squareSize, squareSize));
+                    s.setTextureRect(sf::IntRect(17 * squareSize, 0, squareSize, squareSize));
                     s.setPosition((i % width + gameBorder_left) * squareSize, (i / width + 1) * squareSize);
                     appWindow.draw(s);
                     if(i==4*width-1)
@@ -146,48 +175,116 @@ int main()
                 }
 
                 appWindow.draw(front_logo);
-                appWindow.draw(menu[1]);
-                appWindow.draw(menu[2]);
-                appWindow.draw(menu[3]);
+                for(int i=1; i<4; i++)
+                    appWindow.draw(menu[i]);
                 appWindow.display();
 
-                if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && mouseY==0)
+                switch(main_menu.type)
                 {
-                    menustage=3;
-                    display_size=true;
-                    if(sfx_sound)
-                        sound_mleft.play();
+                case sf::Event::MouseButtonPressed:
+                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+                        mouse_button=1;
+                case sf::Event::MouseButtonReleased:
+                    if(mouse_button)
+                    {
+                        mouse_button=0;
+                        if(mouseY==0)
+                        {
+                            menustage=3;
+                            display_size=true;
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        else if(mouseY==2)
+                        {
+                            menustage=2;
+                            display_size=true;
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        else if(mouseY==4)
+                            appWindow.close();
+                    }
+                    break;
+                default:
+                    break;
                 }
-                else if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && mouseY==2)
-                {
-                    menustage=2;
-                    display_size=true;
-                    if(sfx_sound)
-                        sound_mleft.play();
-                }
-                else if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && mouseY==4)
-                    appWindow.close();
             }
             break;
 
         case 1:
             sf::Event play;
-            while (appWindow.pollEvent(play))
+            while(appWindow.pollEvent(play))
             {
                 if(display_size)
                 {
                     minesLeft = mineNumber;
                     squareNumber = width * height;
                     unrevealed = squareNumber;
-                    appWindow.setIcon(32,32,Icon.getPixelsPtr());
                     appWindow.create(sf::VideoMode((width+gameBorder_right+gameBorder_left)*squareSize,(height+gameBorder_top+gameBorder_bottom)*squareSize, desktop.bitsPerPixel), "Minesweeper!");
+                    appWindow.setIcon(icon.getSize().x, icon.getSize().y,icon.getPixelsPtr());
                     display_size=0;
                 }
-                if ((play.type == sf::Event::MouseButtonPressed || play.type == sf::Event::KeyPressed) && gameOver != 1 && unrevealed != mineNumber)
+                if((gameOver != 1) && (unrevealed != mineNumber) && (mouseX >= 0) && (mouseX < width) && (mouseY >= 0) && (mouseY < height))
                 {
-                    if((mouseX >= 0) && (mouseX < width) && (mouseY >= 0) && (mouseY < height))
+                    switch(play.type)
                     {
-                        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+                    case sf::Event::MouseButtonPressed:
+                        if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+                            mouse_button=1;
+                        else if(sf::Mouse::isButtonPressed(sf::Mouse::Right))
+                            mouse_button=2;
+                        else  if(sf::Mouse::isButtonPressed(sf::Mouse::Middle))
+                            mouse_button=3;
+                        break;
+                    case sf::Event::KeyPressed:
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+                            mouse_button=2;
+                        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                            mouse_button=3;
+                        break;
+                    case sf::Event::KeyReleased:
+                        if(mouse_button==2)
+                        {
+                            if (boardRevealed[mouseY * width + mouseX] == 2)
+                            {
+                                minesLeft++;
+                                if(sfx_sound)
+                                    sound_flag.play();
+                                if(mark_flag)
+                                    boardRevealed[mouseY * width + mouseX] = 3;
+                                else
+                                    boardRevealed[mouseY * width + mouseX] = 0;
+                            }
+                            else if (boardRevealed[mouseY * width + mouseX] == 3)
+                            {
+                                if(sfx_sound)
+                                    sound_unflag.play();
+                                boardRevealed[mouseY * width + mouseX] = 0;
+                            }
+                            else if (boardRevealed[mouseY * width + mouseX] == 0 && minesLeft>-9)
+                            {
+                                minesLeft--;
+                                boardRevealed[mouseY * width + mouseX] = 2;
+                                if(sfx_sound)
+                                    sound_flag.play();
+                            }
+                            mouse_button=0;
+                        }
+                        else if(mouse_button==3)
+                        {
+                            if(boardRevealed[mouseY * width + mouseX] == 1)
+                                if(show_surroundings(mouseX, mouseY))
+                                {
+                                    music.stop();
+                                    if(music_sound)
+                                        sound_gameOver.play();
+                                }
+                            mouse_button=0;
+                        }
+                        break;
+                    case sf::Event::MouseButtonReleased:
+                        if(mouse_button==1)
                         {
                             if(first_click) // generate the map after the first click every time //
                             {
@@ -217,14 +314,15 @@ int main()
                                 if(reveal(mouseX, mouseY))
                                     board[mouseY * width + mouseX] = -1;
                             }
+                            mouse_button=0;
                         }
-                        else if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+                        else if(mouse_button==2)
                         {
                             if (boardRevealed[mouseY * width + mouseX] == 2)
                             {
+                                minesLeft++;
                                 if(sfx_sound)
                                     sound_flag.play();
-                                minesLeft++;
                                 if(mark_flag)
                                     boardRevealed[mouseY * width + mouseX] = 3;
                                 else
@@ -238,13 +336,14 @@ int main()
                             }
                             else if (boardRevealed[mouseY * width + mouseX] == 0 && minesLeft>-9)
                             {
-                                if(sfx_sound)
-                                    sound_flag.play();
                                 minesLeft--;
                                 boardRevealed[mouseY * width + mouseX] = 2;
+                                if(sfx_sound)
+                                    sound_flag.play();
                             }
+                            mouse_button=0;
                         }
-                        else if (sf::Mouse::isButtonPressed(sf::Mouse::Middle) || sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                        else if(mouse_button==3)
                         {
                             if(boardRevealed[mouseY * width + mouseX] == 1)
                                 if(show_surroundings(mouseX, mouseY))
@@ -253,19 +352,58 @@ int main()
                                     if(music_sound)
                                         sound_gameOver.play();
                                 }
+                            mouse_button=0;
                         }
+                        break;
+                    default:
+                        break;
                     }
                 }
 
             // Draw the background blocks //
             appWindow.draw(background_sprite);
 
+            // Main Menu Game Buttons //
+            optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4, 0, squareSize, squareSize));
+            optionbuttonsmenu.setPosition(0, 0);
+            appWindow.draw(optionbuttonsmenu);
+            optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32*2, 0, squareSize, squareSize));
+            optionbuttonsmenu.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
+            appWindow.draw(optionbuttonsmenu);
+            if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
+            {
+                optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32, 0, squareSize, squareSize));
+                optionbuttonsmenu.setPosition(0, 0);
+                appWindow.draw(optionbuttonsmenu);
+                if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+                {
+                    menustage=0;
+                    display_size=1;
+                    music.stop();
+                    sound_gameWin.stop();
+                    sound_gameOver.stop();
+                    if(music_sound)
+                        mainmenu.play();
+                    if(sfx_sound)
+                        sound_mleft.play();
+                    reset();
+                }
+            }
+            else if(mouseY==-gameBorder_top && mouseX==width)
+            {
+                optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32*3, 0, squareSize, squareSize));
+                optionbuttonsmenu.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
+                appWindow.draw(optionbuttonsmenu);
+                if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+                    appWindow.close();
+            }
+
             // Draw the background for the score table //
             if(width>=9)
             {
                 for(int i=width; i<width*2; i++)
                 {
-                    s.setTextureRect(sf::IntRect(16 * squareSize, 0, squareSize, squareSize));
+                    s.setTextureRect(sf::IntRect(17 * squareSize, 0, squareSize, squareSize));
                     s.setPosition((i % width + gameBorder_left) * squareSize, (i / width + 1) * squareSize);
                     appWindow.draw(s);
                     if(i==width+2)
@@ -276,7 +414,7 @@ int main()
             {
                 for(int i=width; i<width*2; i++)
                 {
-                    s.setTextureRect(sf::IntRect(16 * squareSize, 0, squareSize, squareSize));
+                    s.setTextureRect(sf::IntRect(17 * squareSize, 0, squareSize, squareSize));
                     s.setPosition((i % width + gameBorder_left) * squareSize, (i / width + 1) * squareSize);
                     appWindow.draw(s);
                     if(i==width+1)
@@ -299,7 +437,7 @@ int main()
                 scoreText.setPosition((squareSize+16), (gameBorder_top-3)*squareSize+17.6);
 //------------------------------------------------------------------------------------------------
 
-            // Update timer //
+        // Update timer //
 //--------------------------------------//
             if(first_click==false && gameOver != 1 && unrevealed != mineNumber){
             timer = clock.getElapsedTime();
@@ -332,7 +470,9 @@ int main()
 
             f.setPosition(appWindow.getDefaultView().getSize().x / 2 - faceSize/2, squareSize);
             unsigned int on_face=appWindow.getDefaultView().getSize().x / 2 - faceSize/2;
-            if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+            if(sf::Mouse::isButtonPressed(sf::Mouse::Left)   ||
+               sf::Mouse::isButtonPressed(sf::Mouse::Middle) ||
+               sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
             {
                 if(pos.x>=on_face && pos.x<=on_face+faceSize && mouseY==-3)
                 {
@@ -340,11 +480,14 @@ int main()
                         f.setTextureRect(sf::IntRect(faceSize*1+squareSize*7,0,faceSize,squareSize));
                     else
                         f.setTextureRect(sf::IntRect(faceSize*1,0,faceSize,squareSize));
+                    if(gameOver==1 || unrevealed == mineNumber)
+                    {
+                        sound_gameOver.stop();
+                        sound_gameWin.stop();
+                        if(music_sound)
+                            music.play();
+                    }
                     reset();
-                    sound_gameOver.stop();
-                    sound_gameWin.stop();
-                    if(music_sound)
-                        music.play();
                 }
                 else if(mouseX >= 0 && mouseX < width && mouseY >= 0 && mouseY < height)
                 {
@@ -354,7 +497,8 @@ int main()
                         f.setTextureRect(sf::IntRect(faceSize*3,0,faceSize,squareSize));
                 }
             }
-            else if(sf::Mouse::isButtonPressed(sf::Mouse::Right))
+            else if(sf::Mouse::isButtonPressed(sf::Mouse::Right) ||
+                    sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
             {
                 if(pos.x>=on_face && pos.x<=on_face+faceSize && mouseY==-3)
                 {
@@ -394,15 +538,50 @@ int main()
                     s.setTextureRect(sf::IntRect(12 * squareSize, 0, squareSize, squareSize));
                 // if the player lose the game, replaces the flag on every bomb that was marked wrong
                 else if (board[i] != 9 && gameOver && boardRevealed[i] == 2)
-                    s.setTextureRect(sf::IntRect(14 * squareSize, 0, squareSize, squareSize));
+                    s.setTextureRect(sf::IntRect(15 * squareSize, 0, squareSize, squareSize));
                 // in another case shows all the bombs
                 else if (board[i] == 9 && gameOver)
                     s.setTextureRect(sf::IntRect(9 * squareSize, 0, squareSize, squareSize));
+
 
                 s.setPosition((i % width + gameBorder_left) * squareSize, (i / width + gameBorder_top) * squareSize);
                 appWindow.draw(s);
             }
 
+            //focus on the block where the player hold the left mouse press
+            if(sf::Mouse::isButtonPressed(sf::Mouse::Left) && (boardRevealed[mouseX+width*mouseY] == 0 || boardRevealed[mouseX+width*mouseY] == 3))
+                {
+                    if((mouseX >= 0) && (mouseX < width) && (mouseY >= 0) && (mouseY < height))
+                    {
+                        if(boardRevealed[mouseX+width*mouseY] == 3)
+                            s.setTextureRect(sf::IntRect(14 * squareSize, 0, squareSize, squareSize));
+                        else
+                            s.setTextureRect(sf::IntRect(0 * squareSize, 0, squareSize, squareSize));
+                        s.setPosition((gameBorder_left+mouseX)*squareSize, (gameBorder_top+mouseY)*squareSize);
+                        if(gameOver != 1 && unrevealed != mineNumber)
+                            appWindow.draw(s);
+                    }
+                }
+
+            //focus on the block where the player hold the  middle mouse press or LShift
+            else if(sf::Mouse::isButtonPressed(sf::Mouse::Middle) || sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                {
+                    for(int i=-1; i<=1; i++)
+                        for(int j=-1; j<=1; j++)
+                            if(boardRevealed[(mouseX+i)+width*(mouseY+j)] == 0 || boardRevealed[(mouseX+i)+width*(mouseY+j)] == 3)
+                            {
+                                if(mouseX+i>=0 && mouseX+i<width && mouseY+j>=0 && mouseY+j<height)
+                                {
+                                if(boardRevealed[(mouseX+i)+width*(mouseY+j)] == 3)
+                                        s.setTextureRect(sf::IntRect(14 * squareSize, 0, squareSize, squareSize));
+                                    else
+                                        s.setTextureRect(sf::IntRect(0 * squareSize, 0, squareSize, squareSize));
+                                    s.setPosition((gameBorder_left+mouseX+i)*squareSize, (gameBorder_top+mouseY+j)*squareSize);
+                                    if(gameOver != 1 && unrevealed != mineNumber)
+                                        appWindow.draw(s);
+                                }
+                            }
+                }
             // if won //
             if (unrevealed == mineNumber && !gameOver)
             {
@@ -428,57 +607,11 @@ int main()
                 else
                     f.setTextureRect(sf::IntRect(faceSize*5,0,faceSize,squareSize));
                 appWindow.draw(f);
-                if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                {
-                    if(mouseX==(width-1)/2 && mouseY==-3)
-                    {
-                        f.setTextureRect(sf::IntRect(squareSize*1,0,squareSize,squareSize));
-                        first_click=true;
-                        gameOver=0;
-                        reset();
-                        if(music_sound)
-                            music.play();
-                    }
-                }
-            }
-
-            // Main Menu Game Buttons //
-            mainmenubutton.setTextureRect(sf::IntRect(0 * squareSize, 0, squareSize, squareSize));
-            mainmenubutton.setPosition(0, 0);
-            appWindow.draw(mainmenubutton);
-            mainmenubutton.setTextureRect(sf::IntRect(2 * squareSize, 0, squareSize, squareSize));
-            mainmenubutton.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
-            appWindow.draw(mainmenubutton);
-            if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
-            {
-                mainmenubutton.setTextureRect(sf::IntRect(1 * squareSize, 0, squareSize, squareSize));
-                mainmenubutton.setPosition(0, 0);
-                appWindow.draw(mainmenubutton);
-                if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                {
-                    menustage=0;
-                    display_size=1;
-                    music.stop();
-                    sound_gameWin.stop();
-                    sound_gameOver.stop();
-                    if(music_sound)
-                        mainmenu.play();
-                    if(sfx_sound)
-                        sound_mleft.play();
-                    reset();
-                }
-            }
-            else if(mouseY==-gameBorder_top && mouseX==width)
-            {
-                mainmenubutton.setTextureRect(sf::IntRect(3 * squareSize, 0, squareSize, squareSize));
-                mainmenubutton.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
-                appWindow.draw(mainmenubutton);
-                if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                    appWindow.close();
             }
 
             appWindow.draw(f);
             appWindow.draw(scoreText);
+            appWindow.draw(gameTimer);
             appWindow.display();
             }
             break;
@@ -490,299 +623,446 @@ int main()
                 if(display_size)
                 {
                     display_size=0;
-                    appWindow.setIcon(32,32,Icon.getPixelsPtr());
+                    appWindow.setIcon(icon.getSize().x, icon.getSize().y,icon.getPixelsPtr());
                 }
 
                 // Draw background //
                 appWindow.draw(background_sprite);
 
+                // Main Menu Game Button //
+                if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32, 0, squareSize, squareSize));
+                else
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4, 0, squareSize, squareSize));
+                    optionbuttonsmenu.setPosition(0, 0);
+                    appWindow.draw(optionbuttonsmenu);
+
+                // Exit Game Button //
+                if(mouseY==-gameBorder_top && mouseX==width)
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32*3, 0, squareSize, squareSize));
+                else
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32*2, 0, squareSize, squareSize));
+                optionbuttonsmenu.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
+                appWindow.draw(optionbuttonsmenu);
+
                 // Draw Title: Options //
-                optionbuttonsmenu.setTextureRect(sf::IntRect(0, 0, 161, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize);
+                optionbuttonsmenu.setTextureRect(sf::IntRect(0, 0, 160, squareSize));
+                optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize);
                 appWindow.draw(optionbuttonsmenu);
 
                 // Draw Back Minesweeper Face Button //
                 if(mark_flag)
-                {
                     s.setTextureRect(sf::IntRect(13*squareSize, 0, squareSize, squareSize));
-                    s.setPosition(appWindow.getDefaultView().getSize().x / 2 - squareSize/2, squareSize*3);
-                    appWindow.draw(s);
-                }
                 else
-                {
                     s.setTextureRect(sf::IntRect(12*squareSize, 0, squareSize, squareSize));
-                    s.setPosition(appWindow.getDefaultView().getSize().x / 2 - squareSize/2, squareSize*3);
-                    appWindow.draw(s);
-                }
+                s.setPosition(appWindow.getDefaultView().getSize().x / 2 - squareSize/2, squareSize*3);
+                appWindow.draw(s);
 
                 // Draw Music Button //
                 if(music_sound)
-                {
                     optionbuttonsmenu.setTextureRect(sf::IntRect(160*5, 0, 64, squareSize));
-                    optionbuttonsmenu.setPosition(gameBorder_left+squareSize-2, squareSize*4);
-                    appWindow.draw(optionbuttonsmenu);
-                }
                 else
-                {
                     optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64, 0, 64, squareSize));
-                    optionbuttonsmenu.setPosition(gameBorder_left+squareSize-2, squareSize*4);
-                    appWindow.draw(optionbuttonsmenu);
-                }
+                optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*4);
+                appWindow.draw(optionbuttonsmenu);
 
                 // Draw Sound Effect Button //
                 if(sfx_sound)
-                {
                     optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*2, 0, 64, squareSize));
-                    optionbuttonsmenu.setPosition(appWindow.getDefaultView().getSize().x / 2+squareSize/2, squareSize*4);
-                    appWindow.draw(optionbuttonsmenu);
-                }
                 else
-                {
                     optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*3, 0, 64, squareSize));
-                    optionbuttonsmenu.setPosition(appWindow.getDefaultView().getSize().x / 2+squareSize/2, squareSize*4);
-                    appWindow.draw(optionbuttonsmenu);
-                }
+                optionbuttonsmenu.setPosition(appWindow.getDefaultView().getSize().x / 2+squareSize/2, squareSize*4);
+                appWindow.draw(optionbuttonsmenu);
 
                 // Draw High Score Button //
                 optionbuttonsmenu.setTextureRect(sf::IntRect(160, 0, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-2, squareSize*6);
+                optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*6);
                 appWindow.draw(optionbuttonsmenu);
 
-                // Draw Help Button //
-                optionbuttonsmenu.setTextureRect(sf::IntRect(160*3, 0, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize, squareSize*8);
-                appWindow.draw(optionbuttonsmenu);
-
-                if(mouseY==-1 && mouseX==2)
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                    {
-                        if(mark_flag)
-                            mark_flag=false;
-                        else
-                            mark_flag=true;
-                        if(sfx_sound)
-                            sound_mleft.play();
-                    }
-
-                if(mouseY==0 && mouseX>=0 && mouseX<=1)
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                    {
-                        if(sfx_sound)
-                            sound_mleft.play();
-                        if(music_sound)
-                        {
-                            mainmenu.stop();
-                            music_sound=false;
-                        }
-                        else
-                        {
-                            music_sound=true;
-                            mainmenu.play();
-                        }
-                    }
-
-                if(mouseY==0 && mouseX>=3 && mouseX<=4)
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                    {
-                        if(sfx_sound)
-                            sfx_sound=false;
-                        else
-                            sfx_sound=true;
-                        sound_mleft.play();
-                    }
-
+                // Draw High Score Button Hover //
                 if(mouseY==2 && mouseX>=0 && mouseX<=4)
                 {
                     optionbuttonsmenu.setTextureRect(sf::IntRect(160*2, 0, 160, squareSize));
-                    optionbuttonsmenu.setPosition(gameBorder_left+squareSize-2, squareSize*6);
+                    optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*6);
                     appWindow.draw(optionbuttonsmenu);
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                        if(sfx_sound)
-                            sound_mleft.play();
                 }
 
+                // Draw Help Button //
+                optionbuttonsmenu.setTextureRect(sf::IntRect(160*3, 0, 160, squareSize));
+                optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*8);
+                appWindow.draw(optionbuttonsmenu);
+
+                // Draw Help Button Hover//
                 if(mouseY==4 && mouseX>=0 && mouseX<=4)
                 {
                     optionbuttonsmenu.setTextureRect(sf::IntRect(160*4, 0, 160, squareSize));
-                    optionbuttonsmenu.setPosition(gameBorder_left+squareSize, squareSize*8);
+                    optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*8);
                     appWindow.draw(optionbuttonsmenu);
+                }
+
+                switch(options_menu.type)
+                {
+                case sf::Event::MouseButtonPressed:
                     if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                        if(sfx_sound)
+                        mouse_button=1;
+                case sf::Event::MouseButtonReleased:
+                    if(mouse_button)
+                    {
+                        mouse_button=0;
+                        if(mouseY==-1 && mouseX==2)
+                        {
+                            if(mark_flag)
+                                mark_flag=false;
+                            else
+                                mark_flag=true;
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        if(mouseY==0 && mouseX>=0 && mouseX<=1)
+                        {
+                            if(sfx_sound)
+                                sound_mleft.play();
+                            if(music_sound)
+                            {
+                                mainmenu.stop();
+                                music_sound=false;
+                            }
+                            else
+                            {
+                                music_sound=true;
+                                mainmenu.play();
+                            }
+                        }
+                        if(mouseY==0 && mouseX>=3 && mouseX<=4)
+                        {
+                            if(sfx_sound)
+                                sfx_sound=false;
+                            else
+                                sfx_sound=true;
                             sound_mleft.play();
+                        }
+                        if(mouseY==2 && mouseX>=0 && mouseX<=4)
+                        {
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        if(mouseY==4 && mouseX>=0 && mouseX<=4)
+                        {
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
+                            menustage=0;
+                        if(mouseY==-gameBorder_top && mouseX==width)
+                            appWindow.close();
+                    }
+                    break;
                 }
-
-                    // Main Menu Game Buttons //
-                mainmenubutton.setTextureRect(sf::IntRect(0 * squareSize, 0, squareSize, squareSize));
-                mainmenubutton.setPosition(0, 0);
-                appWindow.draw(mainmenubutton);
-                mainmenubutton.setTextureRect(sf::IntRect(2 * squareSize, 0, squareSize, squareSize));
-                mainmenubutton.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
-                appWindow.draw(mainmenubutton);
-                if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
-                {
-                    mainmenubutton.setTextureRect(sf::IntRect(1 * squareSize, 0, squareSize, squareSize));
-                    mainmenubutton.setPosition(0, 0);
-                    appWindow.draw(mainmenubutton);
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                        menustage=0;
-                }
-                else if(mouseY==-gameBorder_top && mouseX==width)
-                {
-                    mainmenubutton.setTextureRect(sf::IntRect(3 * squareSize, 0, squareSize, squareSize));
-                    mainmenubutton.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
-                    appWindow.draw(mainmenubutton);
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                        appWindow.close();
-                }
-
-
                 appWindow.display();
             }
             break;
 
         case 3:
             sf::Event playmode;
-            while (appWindow.pollEvent(playmode))
+            while(appWindow.pollEvent(playmode))
             {
                 if(display_size)
                 {
                     width=5;
                     height=6;
-                    appWindow.setIcon(32,32,Icon.getPixelsPtr());
                     appWindow.create(sf::VideoMode((width+gameBorder_right+gameBorder_left)*squareSize,(height+gameBorder_top+gameBorder_bottom)*squareSize, desktop.bitsPerPixel), "Minesweeper!");
+                    appWindow.setIcon(icon.getSize().x, icon.getSize().y,icon.getPixelsPtr());
                     display_size=0;
                 }
+
                 // Draw background //
                 appWindow.draw(background_sprite);
 
-                // Draw Title: Options //
-                optionbuttonsmenu.setTextureRect(sf::IntRect(0, squareSize, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize);
-                appWindow.draw(optionbuttonsmenu);
-
-                // Draw Game: Begginer //
-                optionbuttonsmenu.setTextureRect(sf::IntRect(160, squareSize, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize*3);
-                appWindow.draw(optionbuttonsmenu);
-
-                // Draw Game: Intermediate //
-                optionbuttonsmenu.setTextureRect(sf::IntRect(160*3, squareSize, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize*5);
-                appWindow.draw(optionbuttonsmenu);
-
-                // Draw Game: Expert //
-                optionbuttonsmenu.setTextureRect(sf::IntRect(160*5, squareSize, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize*7);
-                appWindow.draw(optionbuttonsmenu);
-
-                // Draw Game: Custom //
-                optionbuttonsmenu.setTextureRect(sf::IntRect(160*7, squareSize, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize*9);
-                appWindow.draw(optionbuttonsmenu);
-
-                if(mouseY==-1 && mouseX>=0 && mouseX<=4)
-                {
-                optionbuttonsmenu.setTextureRect(sf::IntRect(160*2, squareSize, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize*3);
-                appWindow.draw(optionbuttonsmenu);
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                    {
-                        width=9;
-                        height=9;
-                        mineNumber=10;
-                        display_size=true;
-                        menustage=1;
-                        if(music_sound)
-                        {
-                            mainmenu.stop();
-                            music.play();
-                        }
-                        if(sfx_sound)
-                            sound_mleft.play();
-                    }
-                }
-
-                if(mouseY==1 && mouseX>=0 && mouseX<=4)
-                {
-                optionbuttonsmenu.setTextureRect(sf::IntRect(160*4, squareSize, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize*5);
-                appWindow.draw(optionbuttonsmenu);
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                    {
-                        width=16;
-                        height=16;
-                        mineNumber=40;
-                        display_size=true;
-                        menustage=1;
-                        if(music_sound)
-                        {
-                            mainmenu.stop();
-                            music.play();
-                        }
-                        if(sfx_sound)
-                            sound_mleft.play();
-                    }
-                }
-
-                if(mouseY==3 && mouseX>=0 && mouseX<=4)
-                {
-                optionbuttonsmenu.setTextureRect(sf::IntRect(160*6, squareSize, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize*7);
-                appWindow.draw(optionbuttonsmenu);
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                    {
-                        width=30;
-                        height=16;
-                        mineNumber=99;
-                        display_size=true;
-                        menustage=1;
-                        if(music_sound)
-                        {
-                            mainmenu.stop();
-                            music.play();
-                        }
-                        if(sfx_sound)
-                            sound_mleft.play();
-                    }
-                }
-
-                if(mouseY==5 && mouseX>=0 && mouseX<=4)
-                {
-                optionbuttonsmenu.setTextureRect(sf::IntRect(160*8, squareSize, 160, squareSize));
-                optionbuttonsmenu.setPosition(gameBorder_left+squareSize-1, squareSize*9);
-                appWindow.draw(optionbuttonsmenu);
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                    {
-                        if(sfx_sound)
-                            sound_mleft.play();
-                    }
-                }
-
-                // Main Menu Game Buttons //
-                mainmenubutton.setTextureRect(sf::IntRect(0 * squareSize, 0, squareSize, squareSize));
-                mainmenubutton.setPosition(0, 0);
-                appWindow.draw(mainmenubutton);
-                mainmenubutton.setTextureRect(sf::IntRect(2 * squareSize, 0, squareSize, squareSize));
-                mainmenubutton.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
-                appWindow.draw(mainmenubutton);
+                // Main Menu Game Button //
                 if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32, 0, squareSize, squareSize));
+                else
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4, 0, squareSize, squareSize));
+                    optionbuttonsmenu.setPosition(0, 0);
+                    appWindow.draw(optionbuttonsmenu);
+
+                // Exit Game Button //
+                if(mouseY==-gameBorder_top && mouseX==width)
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32*3, 0, squareSize, squareSize));
+                else
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32*2, 0, squareSize, squareSize));
+                optionbuttonsmenu.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
+                appWindow.draw(optionbuttonsmenu);
+
+                // Draw the choices //
+                for(unsigned int i=0; i<=7; i++)
                 {
-                    mainmenubutton.setTextureRect(sf::IntRect(1 * squareSize, 0, squareSize, squareSize));
-                    mainmenubutton.setPosition(0, 0);
-                    appWindow.draw(mainmenubutton);
-                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                        menustage=0;
+                    if(i==0)
+                    {
+                        // Draw Title: Options //
+                        optionbuttonsmenu.setTextureRect(sf::IntRect(0, squareSize, 160, squareSize));
+                        optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize);
+                        appWindow.draw(optionbuttonsmenu);
+                    }
+                    else
+                    {
+                        // Draw Game Mode: Begginer, Intermediate, Expert, Custom //
+                        optionbuttonsmenu.setTextureRect(sf::IntRect(160*i, squareSize, 160, squareSize));
+                        optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*(i+2));
+                        appWindow.draw(optionbuttonsmenu);
+                        i++;
+                    }
                 }
-                else if(mouseY==-gameBorder_top && mouseX==width)
+
+                // Draw Game Mode: Begginer, Intermediate, Expert, Custom  Hover //
+                if((mouseY==-1 || mouseY==1 || mouseY==3 || mouseY==5) && mouseX>=0 && mouseX<=4)
                 {
-                    mainmenubutton.setTextureRect(sf::IntRect(3 * squareSize, 0, squareSize, squareSize));
-                    mainmenubutton.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
-                    appWindow.draw(mainmenubutton);
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*(4+mouseY-1), squareSize, 160, squareSize));
+                    optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*(4+mouseY));
+                    appWindow.draw(optionbuttonsmenu);
+                }
+
+                switch(playmode.type)
+                {
+                case sf::Event::MouseButtonPressed:
                     if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                        appWindow.close();
+                        mouse_button=1;
+                    break;
+                case sf::Event::MouseButtonReleased:
+                    if(mouse_button)
+                    {
+                        mouse_button=0;
+                        if(mouseY==-1 && mouseX>=0 && mouseX<=4)
+                        {
+                            width=9;
+                            height=9;
+                            mineNumber=10;
+                            display_size=true;
+                            menustage=1;
+                            if(music_sound)
+                            {
+                                mainmenu.stop();
+                                music.play();
+                            }
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        if(mouseY==1 && mouseX>=0 && mouseX<=4)
+                        {
+                            width=16;
+                            height=16;
+                            mineNumber=40;
+                            display_size=true;
+                            menustage=1;
+                            if(music_sound)
+                            {
+                                mainmenu.stop();
+                                music.play();
+                            }
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        if(mouseY==3 && mouseX>=0 && mouseX<=4)
+                        {
+                            width=30;
+                            height=16;
+                            mineNumber=99;
+                            display_size=true;
+                            menustage=1;
+                            if(music_sound)
+                            {
+                                mainmenu.stop();
+                                music.play();
+                            }
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        if(mouseY==5 && mouseX>=0 && mouseX<=4)
+                        {
+                            menustage=4;
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
+                            menustage=0;
+                        if(mouseY==-gameBorder_top && mouseX==width)
+                            appWindow.close();
+                    }
+                    break;
                 }
                 appWindow.display();
             }
+            break;
+
+        case 4:
+            sf::Event custom;
+            while (appWindow.pollEvent(custom))
+            {
+
+                // Draw background //
+                appWindow.draw(background_sprite);
+
+                // Main Menu Game Button //
+                if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32, 0, squareSize, squareSize));
+                else
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4, 0, squareSize, squareSize));
+                    optionbuttonsmenu.setPosition(0, 0);
+                    appWindow.draw(optionbuttonsmenu);
+
+                // Exit Game Button //
+                if(mouseY==-gameBorder_top && mouseX==width)
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32*3, 0, squareSize, squareSize));
+                else
+                    optionbuttonsmenu.setTextureRect(sf::IntRect(160*5+64*4+32*2, 0, squareSize, squareSize));
+                optionbuttonsmenu.setPosition(appWindow.getDefaultView().getSize().x-squareSize, 0);
+                appWindow.draw(optionbuttonsmenu);
+
+                // Draw the choices //
+                for(unsigned int i=0; i<=7; i++)
+                    if(i==0)
+                    {
+                        // Draw Title: Options //
+                        optionbuttonsmenu.setTextureRect(sf::IntRect(0, squareSize*2, 160, squareSize));
+                        optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize);
+                        appWindow.draw(optionbuttonsmenu);
+                    }
+                    else
+                    {
+                        // Draw Game Mode: Begginer, Intermediate, Expert, Custom //
+                        optionbuttonsmenu.setTextureRect(sf::IntRect(160*i, squareSize*2, 160, squareSize));
+                        optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*(i+2));
+                        appWindow.draw(optionbuttonsmenu);
+                        i++;
+                    }
+
+                // Draw Game Mode: Begginer, Intermediate, Expert, Custom  Hover //
+                if((mouseY==0 || mouseY==2 || mouseY==4 || mouseY==5) && mouseX>=0 && mouseX<=4)
+                {
+
+                    if(mouseY==5)
+                    {
+                        optionbuttonsmenu.setTextureRect(sf::IntRect(160*(mouseY+3), squareSize*2, 160, squareSize));
+                        optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*(mouseY+4));
+                    }
+                    else
+                    {
+                        optionbuttonsmenu.setTextureRect(sf::IntRect(160*(mouseY+2), squareSize*2, 160, squareSize));
+                        optionbuttonsmenu.setPosition(gameBorder_left*squareSize, squareSize*(mouseY+3));
+                    }
+                    appWindow.draw(optionbuttonsmenu);
+                }
+
+                // Draw the text input background //
+                for(int i=3*width; i<8*width; i++)
+                {
+                    s.setTextureRect(sf::IntRect(17 * squareSize, 0, squareSize, squareSize));
+                    s.setPosition((i % width + gameBorder_left) * squareSize, (i / width + 1) * squareSize);
+                    appWindow.draw(s);
+                    if(i==4*width-1)
+                        i=5*width-1;
+                    if(i==6*width-1)
+                        i=7*width-1;
+                }
+
+                switch(custom.type)
+                {
+                case sf::Event::TextEntered:
+                    if(mouseY==0 && mouseX>=0 && mouseX<=4)
+                    {
+                        if(custom.text.unicode == '\b')
+                            Playerstring[1].erase(Playerstring[1].getSize()-1,1);
+                        else if(custom.text.unicode <128)
+                            Playerstring[1] +=custom.text.unicode;
+                        playerinput[1].setString(Playerstring[1]);
+                        playerinput[1].setPosition(appWindow.getDefaultView().getSize().x/2-Playerstring[1].getSize()*10, gameBorder_top+squareSize*4-18);
+                        std::stringstream convert(Playerstring[1]);
+                        convert >> customw;
+                        if(customw>18) sound_wrong.play();
+                    }
+                    if(mouseY==2 && mouseX>=0 && mouseX<=4)
+                    {
+                        if(custom.text.unicode == '\b')
+                            Playerstring[2].erase(Playerstring[2].getSize()-1,1);
+                        else if(custom.text.unicode <128)
+                            Playerstring[2] +=custom.text.unicode;
+                        playerinput[2].setString(Playerstring[2]);
+                        playerinput[2].setPosition(appWindow.getDefaultView().getSize().x/2-Playerstring[2].getSize()*10, gameBorder_top+squareSize*6-18);
+                        std::stringstream convert(Playerstring[2]);
+                        convert >> customh;
+                        if(customh>18) sound_wrong.play();
+                    }
+                    if(mouseY==4 && mouseX>=0 && mouseX<=4)
+                    {
+                        if(custom.text.unicode == '\b')
+                            Playerstring[3].erase(Playerstring[3].getSize()-1,1);
+                        else if(custom.text.unicode <128)
+                            Playerstring[3] +=custom.text.unicode;
+                        playerinput[3].setString(Playerstring[3]);
+                        playerinput[3].setPosition(appWindow.getDefaultView().getSize().x/2-Playerstring[3].getSize()*10, gameBorder_top+squareSize*8-18);
+                        std::stringstream convert(Playerstring[3]);
+                        convert >> customm;
+                        if(customm>320) sound_wrong.play();
+                    }
+                    if(customw>18 || customw<5) playerinput[1].setColor(sf::Color::Red);
+                    else playerinput[1].setColor(sf::Color::Green);
+                    if(customh>18 || customh<5) playerinput[2].setColor(sf::Color::Red);
+                    else playerinput[2].setColor(sf::Color::Green);
+                    if(customm>320 || customm<5) playerinput[3].setColor(sf::Color::Red);
+                    else playerinput[3].setColor(sf::Color::Green);
+                    break;
+                case sf::Event::MouseButtonPressed:
+                    if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+                        mouse_button=1;
+                    break;
+                case sf::Event::MouseButtonReleased:
+                    if(mouse_button)
+                    {
+                        mouse_button=0;
+                        if(mouseY==5 && mouseX>=0 && mouseX<=4)
+                        {
+                            if(customw<5 || customw>18)
+                                width=5;
+                            else
+                                width=customw;
+                            if(customh<5 || customh>18)
+                                height=5;
+                            else
+                                height=customh;
+                            if(customm<5 || customm>18)
+                                mineNumber=5;
+                            else
+                                mineNumber=customm;
+                            menustage=1;
+                            display_size=true;
+                            if(music_sound)
+                            {
+                                mainmenu.stop();
+                                music.play();
+                            }
+                            if(sfx_sound)
+                                sound_mleft.play();
+                        }
+                        if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
+                        {
+                            menustage=0;
+                            Playerstring[1].clear();
+                            Playerstring[2].clear();
+                            Playerstring[3].clear();
+                        }
+                        if(mouseY==-gameBorder_top && mouseX==width)
+                            appWindow.close();
+                    }
+                    break;
+                }
+                for(int i=1; i<4; i++)
+                    appWindow.draw(playerinput[i]);
+                appWindow.display();
+            }
+            break;
+
+        default:
+            appWindow.close();
             break;
         }
     }

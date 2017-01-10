@@ -14,7 +14,8 @@
 */
 
 // Definitions
-int width = 5, height = 5, squareNumber, mineNumber, unrevealed, flagNum, minesLeft, faceSize, gameTime = 0, menustage = 0;
+int width = 5, height = 5, squareNumber, mineNumber, unrevealed, flagNum, minesLeft, faceSize, gameTime = 0, menustage = 0, mouse_button=0;
+int customw, customh, customm;
 int squareSize = 32;
 int gameBorder_top = 4, gameBorder_right = 1, gameBorder_bottom = 1, gameBorder_left = 1;
 int board[MAX*MAX] = {0};
@@ -167,27 +168,26 @@ void reset()
     gameTime = 0;
 }
 
-bool show_surroundings(int x, int y)
+bool show_surroundings(int mouseX, int mouseY)
 {
     int flag=0;
-    if(boardRevealed[(y-1)*width+x]==2) flag++;
-    if(boardRevealed[(y-1)*width+(x-1)]==2) flag++;
-    if(boardRevealed[(y-1)*width+(x+1)]==2) flag++;
-    if(boardRevealed[y*width+(x-1)]==2) flag++;
-    if(boardRevealed[y*width+(x+1)]==2) flag++;
-    if(boardRevealed[(y+1)*width+x]==2) flag++;
-    if(boardRevealed[(y+1)*width+(x-1)]==2) flag++;
-    if(boardRevealed[(y+1)*width+(x+1)]==2) flag++;
-    if(flag==board[y*width+x])
+    for(int i=-1; i<=1; i++)
+        for(int j=-1; j<=1; j++)
+        {
+            if(mouseX+i>=0 && mouseX+i<width && mouseY+j>=0 && mouseY+j<height)
+                if(boardRevealed[(mouseX+i)+width*(mouseY+j)] == 2)
+                    flag++;
+        }
+    if(flag==board[mouseX+width*mouseY])
     {
-        if( reveal(x,y-1)   ||
-                reveal(x-1,y-1) ||
-                reveal(x+1,y-1) ||
-                reveal(x-1,y)   ||
-                reveal(x+1,y)   ||
-                reveal(x,y+1)   ||
-                reveal(x-1,y+1) ||
-                reveal(x+1,y+1))
+        if( reveal(mouseX,mouseY-1)   ||
+            reveal(mouseX-1,mouseY-1) ||
+            reveal(mouseX+1,mouseY-1) ||
+            reveal(mouseX-1,mouseY)   ||
+            reveal(mouseX+1,mouseY)   ||
+            reveal(mouseX,mouseY+1)   ||
+            reveal(mouseX-1,mouseY+1) ||
+            reveal(mouseX+1,mouseY+1))
             return true;
     }
     return false;
