@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://logalex96.github.io/minesweeper/"><img src="http://i.imgur.com/P0U39fE.png" alt="Minesweeper Game" width="200"></a>
+  <a href="https://logalex96.github.io/minesweeper/"><img src="http://i.imgur.com/dCYHKmo.png" alt="Minesweeper Game" width="822"></a>
   <br>
 </h1>
 
