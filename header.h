@@ -1,5 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include <windows.h>
+#include <cmath>
 #include <sstream>
 #include <ctime>
 #include <iostream>
@@ -14,8 +16,9 @@
 */
 
 // Definitions
+float logo_animation;
 int width = 5, height = 5, squareNumber, mineNumber, unrevealed, flagNum, minesLeft, faceSize, gameTime = 0, menustage = 0, mouse_button=0;
-int customw, customh, customm;
+int customw, customh, customm, tutorialw, tutorialh;
 int squareSize = 32;
 int gameBorder_top = 4, gameBorder_right = 1, gameBorder_bottom = 1, gameBorder_left = 1;
 int board[MAX*MAX] = {0};
@@ -31,6 +34,8 @@ void display(int x, int y, int firstX, int firstY);
 bool reveal(int x, int y);
 void reset();
 bool show_surroundings(int x, int y);
+double abs(double a);
+float lerp(float a, float b, float c);
 
 // All Functions here:
 int nearMines(int x, int y)
@@ -192,3 +197,17 @@ bool show_surroundings(int mouseX, int mouseY)
     }
     return false;
 }
+
+double abs(double a)
+{
+    if(a<0)
+        return -a;
+    else
+        return a;
+}
+
+float lerp(float a, float b, float c)
+{
+    return a+c*(b-a);
+}
+

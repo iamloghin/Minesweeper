@@ -1,10 +1,12 @@
 # depslib dependency file v1.0
-1484070998 source:d:\github\minesweeper\main.cpp
+1484238281 source:d:\github\minesweeper\main.cpp
 	"header.h"
 
-1484069806 d:\github\minesweeper\header.h
+1484236005 d:\github\minesweeper\header.h
 	<SFML/Graphics.hpp>
 	<SFML/Audio.hpp>
+	<windows.h>
+	<cmath>
 	<sstream>
 	<ctime>
 	<iostream>
