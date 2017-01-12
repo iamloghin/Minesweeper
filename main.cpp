@@ -1199,7 +1199,7 @@ int main()
                         mouse_button=0;
                         if(mouseY==5 && mouseX>=0 && mouseX<=4)
                         {
-                            if(tutorialw==9 && tutorialh==2)
+                            if(tutorialw==10 && tutorialh==2)
                             {
                                 menustage=3;
                                 display_size=true;
