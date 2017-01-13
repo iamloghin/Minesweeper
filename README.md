@@ -48,9 +48,6 @@
 - Reveal adjacent squares function - Hover with the mouse and press `shift` or `middle click` to reveal all adjacent squares.
 
 <p align="center">
-
-___
-
 <a href="http://www.sfml-dev.org/index.php"><img src="http://www.sfml-dev.org/images/logo.png" alt="SFML" width="252"></a>
 </p>
 
@@ -58,7 +55,9 @@ ___
 
 SFML is a simple to use and portable API written in C++. You can think of it as an object oriented SDL. SFML is made of modules in order to be as useful as possible for everyone. You can use SFML as a minimalist window system in order to use OpenGL, or as a complete multimedia library full of features to build video games or multimedia softwares.
 
+<p align="center">
 ######SFML Version used in game: SFML 2.4.1, GCC 4.9.2 TDM (SJLJ) - 32-bit
+</p>
 
 ### What dependencies does SFML have?
 
@@ -82,6 +81,7 @@ On Linux however, nothing is provided and SFML relies on your own installation o
  - openal
  - flac
  - vorbis
+ 
 The exact name of the packages depend on each distribution. And don't forget to install the development version of these packages.
 
 SFML has also internal dependencies: Audio and Window depend on System, while Graphics depends on System and Window. In order to use the Graphics module, you must link with Graphics, Window, and System (the order of linkage matters with GCC).
