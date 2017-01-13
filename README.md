@@ -15,6 +15,7 @@
 - `Right-click` / `Space` - x1 place a flag
 - `Right-click` / `Space` - x2 place a question mark
 - `Middle-click` / `L-Shift` - reveal its adjacent squares.
+- `L-CTRL` - use MAGIC, an awesome function.
 - `F2` - reveal its adjacent squares.
 
 **Quick Start:**
@@ -48,9 +49,6 @@
 - Reveal adjacent squares function - Hover with the mouse and press `shift` or `middle click` to reveal all adjacent squares.
 
 <p align="center">
-
-___
-
 <a href="http://www.sfml-dev.org/index.php"><img src="http://www.sfml-dev.org/images/logo.png" alt="SFML" width="252"></a>
 </p>
 
@@ -58,7 +56,7 @@ ___
 
 SFML is a simple to use and portable API written in C++. You can think of it as an object oriented SDL. SFML is made of modules in order to be as useful as possible for everyone. You can use SFML as a minimalist window system in order to use OpenGL, or as a complete multimedia library full of features to build video games or multimedia softwares.
 
-######SFML Version used in game: SFML 2.4.1, GCC 4.9.2 TDM (SJLJ) - 32-bit
+<p align="center">SFML Version used in game: SFML 2.4.1, GCC 4.9.2 TDM (SJLJ) - 32-bit</p>
 
 ### What dependencies does SFML have?
 
