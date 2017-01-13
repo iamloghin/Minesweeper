@@ -5,7 +5,7 @@
 
 <h4 align="center"> :heart: A new old game that just arrived :heart: </h4>
 
-<p align="center"><img src="https://raw.githubusercontent.com/logalex96/minesweeper/master/docs/game_demo.gif" alt="minesweeper game play demo"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/logalex96/minesweeper/master/docs/game_demo_2.gif" alt="minesweeper game play demo"></p>
 
 ### Instructions for MineSweeper
 
