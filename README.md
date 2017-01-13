@@ -1,11 +1,19 @@
 <h1 align="center">
+<<<<<<< HEAD
   <a href="https://logalex96.github.io/minesweeper/"><img src="https://raw.githubusercontent.com/logalex96/minesweeper/master/docs/logo.png" alt="Minesweeper Game" width="822"></a>
+=======
+  <a href=""><img src="http://i.imgur.com/dCYHKmo.png" alt="Minesweeper Game" width="822"></a>
+>>>>>>> origin/master
   <br>
 </h1>
 
 <h4 align="center"> :heart: A new old game that just arrived :heart: </h4>
 
+<<<<<<< HEAD
 <p align="center"><img src="https://raw.githubusercontent.com/logalex96/minesweeper/master/docs/game_demo.gif" alt="minesweeper game play demo"></p>
+=======
+<p align="center"><img src="https://raw.githubusercontent.com/logalex96/minesweeper/master/game_demo.gif?token=AF9Zh5SQo2CzDlEXvQA3eqgfM0ERyQP4ks5YgUBswA%3D%3D" alt="minesweeper game play demo"></p>
+>>>>>>> origin/master
 
 ### Instructions for MineSweeper
 
