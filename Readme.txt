@@ -15,7 +15,10 @@ This projects was built for the Introduction in programming course. The purpose 
 
 ---
 
-You don't need anything special to run this code. 
-To run this game you will need "openal32.dll" but it is included in folder.
+Project made on Code::Blocks 16.01, language C++ with SFML 2.4.1 (GCC 4.9.2 TDM (SJLJ) - 32-bit).
+
+To run this game you will need "openal32.dll" but it's included in folder.
 
 Because the game is made in Simple and Fast Multimedia Library (SFML) you will need to install the library on your C, C++ IDE before run the files project :)
+
+Have fun :P
