@@ -76,7 +76,7 @@ int main()
 
     // Initialize the game text //
     sf::String playerstring[4];
-    sf::Text scoreText, gameTimer, game_version, menu[4], playerinput[4];
+    sf::Text scoreText, gameTimer, game_version, player_movesText, menu[4], playerinput[4];
 
     scoreText.setFont(font);
     scoreText.setColor(sf::Color::Red);
@@ -90,8 +90,14 @@ int main()
     gameTimer.setStyle(sf::Text::Bold);
     gameTimer.setScale(2.f, 2.f);
 
+    player_movesText.setFont(font);
+    player_movesText.setColor(sf::Color::Green);
+    player_movesText.setCharacterSize(20);
+    player_movesText.setStyle(sf::Text::Bold);
+    player_movesText.setScale(2.f, 2.f);
+
     game_version.setFont(font);
-    game_version.setString("1.0.0");
+    game_version.setString("1.1.0");
     game_version.setPosition(appWindow.getDefaultView().getSize().x/2.5, 8*squareSize-6);
 
     // Custom Game Player Input //
@@ -138,10 +144,6 @@ int main()
         int mouseX = pos.x / squareSize - gameBorder_left;
         int mouseY = pos.y / squareSize - gameBorder_top;
 
-        timer2 = clock2.restart();
-        logo_animation+= timer2.asSeconds();
-        front_logo.setScale(lerp(0.98, 1.05, abs(cos(logo_animation))), lerp(0.98, 1.05, abs(cos(logo_animation))));
-
         switch(menustage)
         {
         case 0:
@@ -161,6 +163,9 @@ int main()
                 appWindow.draw(background_sprite);
 
                 // Draw the Logo image //
+                timer2 = clock2.restart();
+                logo_animation+= timer2.asSeconds();
+                front_logo.setScale(lerp(0.98, 1.05, abs(cos(logo_animation))), lerp(0.98, 1.05, abs(cos(logo_animation))));
                 appWindow.draw(front_logo);
 
                 // Draw the text background //
@@ -308,16 +313,27 @@ int main()
                         gameTime++;
                 }
 
-                std::ostringstream timespend;
+                std::ostringstream timespend, moves;
+                moves << player_moves;
                 timespend << gameTime;
+                player_movesText.setString(moves.str());
                 gameTimer.setString(timespend.str());
 
-                if(gameTime>=100)
-                    gameTimer.setPosition((width-gameBorder_right*1.5)*squareSize, (gameBorder_top-3)*squareSize+17.6);
-                else if(gameTime<100 && gameTime>=10)
-                    gameTimer.setPosition((width-gameBorder_right/1.5)*squareSize, (gameBorder_top-3)*squareSize+17.6);
+                if(gameTime>=100 || player_moves>=100)
+                {
+                    gameTimer.setPosition((width-gameBorder_right*1.5)*squareSize, squareSize+17.6);
+                    player_movesText.setPosition((width-gameBorder_right*1.5)*squareSize, squareSize+17.6);
+                }
+                else if(gameTime<100 && gameTime>=10 || player_moves<100 && player_moves>=10)
+                {
+                    gameTimer.setPosition((width-gameBorder_right/1.5)*squareSize, squareSize+17.6);
+                    player_movesText.setPosition((width-gameBorder_right/1.5)*squareSize, squareSize+17.6);
+                }
                 else
-                    gameTimer.setPosition((width-gameBorder_right/1.5)*squareSize, (gameBorder_top-3)*squareSize+17.6);
+                {
+                    gameTimer.setPosition((width-gameBorder_right/1.5)*squareSize, squareSize+17.6);
+                    player_movesText.setPosition((width-gameBorder_right/1.5)*squareSize, squareSize+17.6);
+                }
 
                 // Face sprite control //
                 // Set the face texture sprite depending on width //
@@ -474,27 +490,57 @@ int main()
 
                 appWindow.draw(f);
                 appWindow.draw(scoreText);
-                appWindow.draw(gameTimer);
+                if(show_moves)
+                    appWindow.draw(player_movesText);
+                else appWindow.draw(gameTimer);;
             }
             while(appWindow.pollEvent(play))
             {
+                if (play.type == sf::Event::Closed)
+                    appWindow.close();
                 if((gameOver != 1) && (unrevealed != mineNumber) && (mouseX >= 0) && (mouseX < width) && (mouseY >= 0) && (mouseY < height))
                 {
                     switch(play.type)
                     {
                     case sf::Event::MouseButtonPressed:
                         if(sf::Mouse::isButtonPressed(sf::Mouse::Left))
+                        {
+                            player_moves++;
                             mouse_button=1;
+                        }
                         else if(sf::Mouse::isButtonPressed(sf::Mouse::Right))
+                        {
+                            player_moves++;
                             mouse_button=2;
+                        }
                         else  if(sf::Mouse::isButtonPressed(sf::Mouse::Middle))
+                        {
+                            player_moves++;
                             mouse_button=3;
+                        }
                         break;
                     case sf::Event::KeyPressed:
                         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+                        {
+                            player_moves++;
                             mouse_button=2;
+                        }
                         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                        {
+                            player_moves++;
                             mouse_button=3;
+                        }
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::F2))
+                        {
+                            if(gameOver==1 || unrevealed == mineNumber)
+                            {
+                                sound_gameOver.stop();
+                                sound_gameWin.stop();
+                                if(music_sound)
+                                    music.play();
+                            }
+                            reset();
+                        }
                         break;
                     case sf::Event::KeyReleased:
                         if(mouse_button==2)
@@ -623,6 +669,28 @@ int main()
                     case sf::Event::MouseButtonReleased:
                         if(mouse_button==1)
                         {
+                            if(mouseY==-(gameBorder_top-2) && mouseX<=width-gameBorder_right)
+                            {
+                                if(width<9)
+                                {
+                                    if(mouseX>=width-gameBorder_right-1)
+                                    {
+                                        mouse_button=0;
+                                        if(show_moves)
+                                            show_moves=false;
+                                        else
+                                            show_moves=true;
+                                    }
+                                }
+                                else if(mouseX>=width-gameBorder_right-2)
+                                    {
+                                        mouse_button=0;
+                                        if(show_moves)
+                                            show_moves=false;
+                                        else
+                                            show_moves=true;
+                                    }
+                            }
                             if(mouseY==-gameBorder_top && mouseX==-gameBorder_left)
                             {
                                 mouse_button=0;
@@ -642,6 +710,19 @@ int main()
                                 mouse_button=0;
                                 appWindow.close();
                             }
+                        }
+                        break;
+                    case sf::Event::KeyPressed:
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::F2))
+                        {
+                            if(gameOver==1 || unrevealed == mineNumber)
+                            {
+                                sound_gameOver.stop();
+                                sound_gameWin.stop();
+                                if(music_sound)
+                                    music.play();
+                            }
+                            reset();
                         }
                         break;
                     default:
@@ -1341,8 +1422,6 @@ int main()
         default:
             appWindow.close();
             break;
-
-        appWindow.draw(front_logo);
         }
     }
     return 0;

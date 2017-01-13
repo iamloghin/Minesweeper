@@ -17,13 +17,13 @@
 
 // Definitions
 float logo_animation;
-int width = 5, height = 5, squareNumber, mineNumber, unrevealed, flagNum, minesLeft, faceSize, gameTime = 0, menustage = 0, mouse_button=0;
-int customw, customh, customm, tutorialw, tutorialh;
+int width = 5, height = 5, gameTime = 0, menustage = 0, mouse_button=0, player_moves=0;
+int squareNumber, mineNumber, unrevealed, flagNum, minesLeft, faceSize, customw, customh, customm, tutorialw, tutorialh;
 int squareSize = 32;
 int gameBorder_top = 4, gameBorder_right = 1, gameBorder_bottom = 1, gameBorder_left = 1;
 int board[MAX*MAX] = {0};
 int boardRevealed[MAX*MAX] = {0}; // -2 is point of start, -1 is point of dead, 0 is unrevealed, 1 is revealed, 2 is flagged, 3 is not sure
-bool first_click = true, gameOver = false, won = false, music_sound = true, sfx_sound = true, mark_flag = true, display_size = true;
+bool first_click = true, gameOver = false, won = false, show_moves=false, music_sound = true, sfx_sound = true, mark_flag = true, display_size = true;
 
 // Funtions meta:
 int nearMines(int x, int y);
@@ -171,6 +171,7 @@ void reset()
     minesLeft = mineNumber;
     unrevealed = squareNumber;
     gameTime = 0;
+    player_moves = 0;
 }
 
 bool show_surroundings(int mouseX, int mouseY)
