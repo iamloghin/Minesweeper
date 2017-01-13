@@ -16,7 +16,7 @@
 - `Right-click` / `Space` - x2 place a question mark
 - `Middle-click` / `L-Shift` - reveal its adjacent squares.
 - `L-CTRL` - use MAGIC, an awesome function.
-- `F2` - reveal its adjacent squares.
+- `F2` - reset the game.
 
 **Quick Start:**
 
