@@ -1,11 +1,11 @@
 <h1 align="center">
-  <a href="https://logalex96.github.io/minesweeper/"><img src="https://raw.githubusercontent.com/logalex96/minesweeper/master/docs/logo.png" alt="Minesweeper Game" width="822"></a>
+  <a href="https://logalex96.github.io/Minesweeper/"><img src="https://raw.githubusercontent.com/logalex96/Minesweeper/master/docs/logo.png" alt="Minesweeper Game" width="822"></a>
   <br>
 </h1>
 
 <h4 align="center"> :heart: A new old game that just arrived :heart: </h4>
 
-<p align="center"><img src="https://raw.githubusercontent.com/logalex96/minesweeper/master/docs/game_demo_2.gif" alt="minesweeper game play demo"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/logalex96/Minesweeper/master/docs/game_demo_2.gif" alt="minesweeper game play demo"></p>
 
 ### Instructions for MineSweeper
 
@@ -25,7 +25,7 @@
 - Clicking a square which doesn't have a bomb reveals the number of neighbouring squares containing bombs. Use this information plus some guess work to avoid the bombs.
 - To open a square, point at the square and click on it. To mark a square you think is a bomb, point and right-click (or hover with the mouse and press `Space`).
 
-<p align="center"><img src="https://raw.githubusercontent.com/logalex96/minesweeper/master/docs/screenshots.png" alt="minesweeper game screenshots"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/logalex96/Minesweeper/master/docs/screenshots.png" alt="minesweeper game screenshots"></p>
 
 **Detailed Instructions:**
 
